@@ -6,19 +6,16 @@ RedTeam_2K = load_dataset("JailbreakV-28K/JailBreakV-28k", 'RedTeam_2K')["RedTea
 
 df = pd.DataFrame(RedTeam_2K)
 
-# Get unique policies
-policies = df['policy'].unique()
+#policies = df['policy'].unique()
 
 policies = {"Fraud",  "Privacy Violation", "Malware"}
 
 # Sample 5 rows per policy
 #sampled_df = pd.concat([df[df['policy'] == p].sample(n=5, random_state=42) for p in policies])
+
+#Sample specific policies
 sampled_df = pd.concat([df[df['policy'].isin(policies)]])
 
-# Optional: shuffle the final dataset
-sampled_df = sampled_df.sample(frac=1, random_state=42).reset_index(drop=True)
-
-# Export to CSV
 #sampled_df.to_csv("Data/sampled_redteam_dataset.csv", index=False)
 sampled_df.to_csv("Data/redteam_fraud_dataset_v2.csv", index=False)
 

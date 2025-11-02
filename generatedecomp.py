@@ -12,18 +12,9 @@ client = OpenAI(
 )
 
 PROMPT_ID = os.getenv("PROMPT_ID")
-'''
-response = client.responses.create(
-  prompt={
-    "id": "pmpt_6907b41d57348195902ddc31ed44553309391cde3cbc8901",
-    "version": "1"
-  }
-)
-'''
-from tqdm import tqdm  # optional, for a progress bar
+from tqdm import tqdm  
 
-
-df = pd.read_csv("Data/sampled_redteam_fraud_dataset_v2.csv")  # column 'question'
+df = pd.read_csv("Data/sampled_redteam_fraud_dataset_v2.csv")  
 def decompose_query_stored_prompt(query, max_retries=2):
     for attempt in range(max_retries + 1):
         try:
@@ -32,7 +23,7 @@ def decompose_query_stored_prompt(query, max_retries=2):
                     "id": PROMPT_ID,
                     "version": "1"
                 },
-                input=query  # keep this simple if your prompt takes plain text
+                input=query  
             )
 
             # New SDK style: extract text safely
