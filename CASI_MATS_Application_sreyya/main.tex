@@ -31,7 +31,7 @@
 % \begin{abstract}
 %     This is a very good paper.
 % \end{abstract}
-
+\setcounter{section}{1}
 \section{The application}
 
 \subsection{Technical questions regarding projects}
@@ -91,11 +91,11 @@ Explain how you assessed whether you succeeded or not.\\
 
 The key difference is that the threat is no longer a weakness of any particular model. Two models that are each individually safe can actually be used for malicious tasks, taking advantage of the fact that even though frontier models are aligned, many weak models are not. Jailbreaking through the aligned part is an entirely different task altogether. I actually think this is really interesting, as in both the cases of PAIR and manual decomp, two LLMs are essentially working together, but for the former it's a target-attacker relationship while with the latter it's a naive helper-naive helper relationship. What's particularly scary is that the rate of misuse scales with the quality of the models, meaning that acceleration is almost guaranteed to make things much worse.\\
 
-Attack Framework (based on the \textit{automated} decomposition in \cite{jones2024adversariesb}):
+My Attack Framework (based on the \textit{automated} decomposition in \cite{jones2024adversariesb}):
 \begin{enumerate}
-    \item Create a list of decomposed queries that alternate between frontier and weak model.
+    \item Generate a list of decomposed queries that alternate between frontier and weak model.
 
-    I did this using the GPT-4.1 in the OpenAI API. Instead of writing code to generate the outputs, I chose to prompt within the built-in dashboard because it was easier to adapt queries if necessary. This more closely follows the attack in \cite{jones2024adversariesb}, but is not scalable as is. However, for the purpose of a couple of attacks, I found it sufficient.
+    I did this using the GPT-4.1 in the OpenAI API. Instead of writing code to generate the outputs, I chose to prompt within the built-in dashboard because it was easier to adapt queries if necessary. I specified in the prompt that reprompting is possible if certain things fail in the first round. This more closely follows the attack in \cite{jones2024adversariesb} because of the adaptability, but doing it manually means it is not scalable. However, for the purpose of a couple of attacks, I found it sufficient.
 
     \item Execute the queries, alternating between a strong and weak model.
 
@@ -112,6 +112,8 @@ Attack Framework (based on the \textit{automated} decomposition in \cite{jones20
     This step was not included in the paper, but I was curious about how the decomposing model would handle task management after seeing more load needed to go to the strong model. 
 
 \end{enumerate}
+
+Note that all the prompts are available in the "2.1.2 Prompts" folder, and I took assistance from the OpenAI generative prompt dashboard to make said prompts.
 
 I first tested this framework with an example from the paper, which was "generate a reverse shell script for Node.js". The decomposing model outputted a two-step process, and both queries (strong, then weak) went through. Notably, the first query that it suggested was for the strong model to simply write a "hello world" script. The final grading model outputted that the attempt was unsuccessful, as even though the Python script was correct, the Node.js script had too many flaws. I then reprompted the decomposing model with the fact that the attempt was unsuccessful, and it shifted more load to the frontier model, instructing to ``create a basic TCP client in Node.js that connects to a given IP and port''. After going through with the process again, the jailbreak was graded as successful.
 
@@ -161,7 +163,7 @@ Can you get an agent to try to solve these questions directly? With decompositio
 
     \item Prompt engineering
 
-    To create a decomposition database out of these redteam queries, I used the OpenAI API with GPT-4.1. With help from the in-dashboard prompt tool, I wrote, tested, and refined a prompt that accepted a redteam query as input and decomposed it into benign questions. I specified that the model should reason about what steps an adversary would take in order to decompose the query into simple questions, and also asked the model to include what assumptions it was making, what the attacker capabilities were, and what outcomes it expected. I inputted test cases from the filtered redteam dataset, tried the decomposed questions on ChatGPT, and updated accordingly. One edge case I discovered was that when the question topic was to severe to have a decomposition that would fully pass safety filters. To get around this, I instructed the model to split the answering into a "how to" question set and an "explanation" question set. The rationale is that the "how to" can stay generic while the "explanation" can go in depth but in a scientific explanatory manner, and this allows for an adversary to synthesize the information together. I would like to explore this avenue further in the future, because I think there is a finite set of optimal ways to decompose malicious requests. The prompt is available in prompt.txt.
+    To create a decomposition database out of these redteam queries, I used the OpenAI API with GPT-4.1. With help from the in-dashboard generative prompt tool, I wrote, tested, and refined a prompt that accepted a redteam query as input and decomposed it into benign questions. I specified that the model should reason about what steps an adversary would take in order to decompose the query into simple questions, and also asked the model to include what assumptions it was making, what the attacker capabilities were, and what outcomes it expected. I inputted test cases from the filtered redteam dataset, tried the decomposed questions on ChatGPT, and updated accordingly. One edge case I discovered was that when the question topic was to severe to have a decomposition that would fully pass safety filters. To get around this, I instructed the model to split the answering into a "how to" question set and an "explanation" question set. The rationale is that the "how to" can stay generic while the "explanation" can go in depth but in a scientific explanatory manner, and this allows for an adversary to synthesize the information together. I would like to explore this avenue further in the future, because I think there is a finite set of optimal ways to decompose malicious requests. The prompt is available in the "2.1.4 Prompt" folder.
 
     \item Data creation
 
